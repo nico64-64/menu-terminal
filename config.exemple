@@ -1,0 +1,43 @@
+Fichier de configuration du menu Terminal.
+
+Les entrées doivent être écrites de la manière suivante:
+"[ NOM ; COMMANDE ; FLAGS ]" où FLAGS peut être vide ou un ou plusieurs mots parmi ceux listés ci-dessous
+Tout texte n'étant pas placé entre crochets sera ignoré.
+Les crochets et les point-virgules doivent OBLIGATOIREMENT être separés du texte par des espaces!
+Pour en savoir plus, vous pouvez consulter le module d'aide intégré du menu en y entrant A.
+
+Liste des flags:
+delai -> attendre un certain temps avant de revenir au menu apres avoir executé le programme
+demander -> demander avant de revenir au menu apres avoir executé le programme
+quitter -> quitter le menu immédiatement avant d'exécuter ce programme
+fork -> forker le programme pour exécuter cette commande
+twin-on / twin-off -> option valide seulement si twin est allumé / éteint
+fbterm-off -> option valide seulement si fbterm est éteint
+
+
+Ouvrir Twin:
+[ Démarrer Twin ; twin ; twin-off fbterm-off ]
+
+Terminal:
+[ Ouvrir un beau terminal ; fbterm-img /home/nicolas/Pictures/slax_wallpaper.jpg ; twin-off fbterm-off ]
+
+Gestion de Fichiers:
+[ Midnight Commander ; mc ; ]
+[ Nano ; nano ; ]
+
+Browsers:
+[ Links (graphique) ; links -g ; twin-off fbterm-off ]
+[ Lynx ; lynx lite.duckduckgo.com/lite ; ]
+
+Musique:
+[ Spotify ; ncspot ; fbterm-off ]
+
+Gestion technique:
+[ Moniteur Système ; twsysmon ; fork twin-on ]
+[ Liste des processus ; top ; ]
+[ Mettre à jour ce système ; sudo pacman -Syu ; demander ]
+[ Modifier ce menu ; nano ~/.config/menu/config ; ]
+
+Suspendre:
+[ Suspendre l'ordi ; sleep 1 && systemctl suspend ; ]
+Le "sleep 1" me donne le temps d'éteindre le clavier et la souris

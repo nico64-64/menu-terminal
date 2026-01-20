@@ -9,6 +9,10 @@ Compilez le programme avec la commande suivante:
 gcc menu.c -o menu -lncursesw
 ```
 
+### Dépendances
+
+Vous aurez besoin des librairies standard C, d'une implémentation de ncurses, de less (pour afficher le texte d'aide), d'une shell compatible avec Bash et des programmes que vous voulez accéder via ce menu..
+
 **Ce programme utilise ncurses, ce qui le rend impossible à porter sur Windows.**
 
 Il devrait toutefois fonctionner sur n'importe quel système basé sur Unix (Linux, BSD, MacOS, etc.), en autant que ce système fournisse un bibliothèque ncurses.

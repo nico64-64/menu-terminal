@@ -7,9 +7,9 @@ Les crochets et les point-virgules doivent OBLIGATOIREMENT être separés du tex
 Pour en savoir plus, vous pouvez consulter le module d'aide intégré du menu en y entrant A.
 
 Liste des flags acceptés:
-- delai              -> attendre un certain temps avant de revenir au menu apres avoir executé le programme
+- delai              -> attendre un certain temps avant de revenir au menu après avoir executé le programme
 - demander           -> demander avant de revenir au menu après avoir executé le programme
-- quitter            -> quitter le menu immédiatement avant d'exécuter ce programme
+- quitter            -> quitter le menu immédiatement avant d'exécuter le programme
 - fork               -> forker le programme pour exécuter cette commande
 - x11-on / x11-off   -> option valide seulement si le programme est (ou n'est pas) exécuté dans un environnement graphique X11
 - twin-on / twin-off -> option valide seulement si le programme est (ou n'est pas) exécuté dans une session twin

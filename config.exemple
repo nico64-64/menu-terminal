@@ -6,38 +6,38 @@ Tout texte n'étant pas placé entre crochets sera ignoré.
 Les crochets et les point-virgules doivent OBLIGATOIREMENT être separés du texte par des espaces!
 Pour en savoir plus, vous pouvez consulter le module d'aide intégré du menu en y entrant A.
 
-Liste des flags:
-delai -> attendre un certain temps avant de revenir au menu apres avoir executé le programme
-demander -> demander avant de revenir au menu apres avoir executé le programme
-quitter -> quitter le menu immédiatement avant d'exécuter ce programme
-fork -> forker le programme pour exécuter cette commande
-twin-on / twin-off -> option valide seulement si twin est allumé / éteint
-fbterm-off -> option valide seulement si fbterm est éteint
+Liste des flags acceptés:
+- delai              -> attendre un certain temps avant de revenir au menu apres avoir executé le programme
+- demander           -> demander avant de revenir au menu après avoir executé le programme
+- quitter            -> quitter le menu immédiatement avant d'exécuter ce programme
+- fork               -> forker le programme pour exécuter cette commande
+- x11-on / x11-off   -> option valide seulement si le programme est (ou n'est pas) exécuté dans un environnement graphique X11
+- twin-on / twin-off -> option valide seulement si le programme est (ou n'est pas) exécuté dans une session twin
+- fbterm-off         -> option valide seulement si le programme n'est pas exécuté dans un terminal fbterm
 
 
-Ouvrir Twin:
+Twin et fbterm:
 [ Démarrer Twin ; twin ; twin-off fbterm-off ]
-
-Terminal:
-[ Ouvrir un beau terminal ; fbterm-img /home/nicolas/Pictures/slax_wallpaper.jpg ; twin-off fbterm-off ]
+[ Ouvrir un beau terminal ; fbterm-img ~/Pictures/wallpaper.jpg ; twin-off fbterm-off x11-off ]
 
 Gestion de Fichiers:
 [ Midnight Commander ; mc ; ]
 [ Nano ; nano ; ]
 
 Browsers:
-[ Links (graphique) ; links -g ; twin-off fbterm-off ]
+[ Links (graphique) ; links -g ; twin-off fbterm-off x11-off ]
+[ Firefox ; firefox ; x11-on ]
 [ Lynx ; lynx lite.duckduckgo.com/lite ; ]
 
 Musique:
 [ Spotify ; ncspot ; fbterm-off ]
 
 Gestion technique:
-[ Moniteur Système ; twsysmon ; fork twin-on ]
-[ Liste des processus ; top ; ]
+[ Coup d'oeil Système ; twsysmon ; fork twin-on ]
+[ Moniteur Système ; htop ; ]
+[ Afficher l'adresse IP ; ip -c=always address ; demander ]
 [ Mettre à jour ce système ; sudo pacman -Syu ; demander ]
 [ Modifier ce menu ; nano ~/.config/menu/config ; ]
 
 Suspendre:
-[ Suspendre l'ordi ; sleep 1 && systemctl suspend ; ]
-Le "sleep 1" me donne le temps d'éteindre le clavier et la souris
+[ Suspendre l'ordi ; systemctl suspend ; ]

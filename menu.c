@@ -32,8 +32,8 @@ void quitter (char cmd[])
 	{
 		strcat(buffer, cmd);
 		strcat(buffer, "\"");
-		execl("/usr/bin/bash", "bash", "-c", buffer, NULL);
-		erreur("Impossible d'executer cette commande lors de la fermeture du programme.", cmd, 0); //ne devrait jamais arriver
+		execl("/usr/bin/sh", "sh", "-c", buffer, NULL);
+		erreur("Impossible d'exécuter cette commande lors de la fermeture du programme.", cmd, 0); //ne devrait pas arriver
 		exit(1000);
 	}
 }
@@ -99,18 +99,19 @@ void gestion_arguments (char arg[])
 		printf("Menu Terminal\n\n");
 		printf("Usage:\nmenu [--arguments]\n\n");
 
-		printf("Ce petit programme genere un menu ncurses permettant de lancer un programme de son choix.\n");
-		printf("Il est possible de le faire appeler en lieu et place de la ligne de commande Bash.\n\n");
+		printf("Ce petit programme génère un menu TUI permettant de lancer un programme de son choix.\n");
+		printf("Il est possible de le faire appeler en lieu et place de la ligne de commande.\n\n");
 
 		printf("Voici la liste des arguments que peut recevoir ce programme:\n");
-		printf("--aide (-?) -> Affiche ce texte et quitte.\n");
-		printf("--version (-v) -> Affiche la version du programme et quitte.\n");
-		printf("--fbterm -> Force l'ouverture du programme en mode fbterm (affiche un fond sombre derrière les entrées du menu) (se fait automatiquement si le programme roule sur fbterm).\n");
-		printf("--normal -> Force l'ouverture du programme en mode normal (se fait automatiquement si le programme ne roule pas sur fbterm).\n");
-		printf("--sansaide (-s) -> N'affiche pas la ligne d'aide en bas de l'ecran.\n");
-		printf("--espacement (-e) -> Indique que le prochain argument sera le nombre de lignes vides a laisser entre chaque entree (de 0 a 6 seulement).\n");
-		printf("--delai (-d) -> Indique que le prochain argument sera le delai (en secondes, de 0 a 6 seulement) a laisser apres l'execution d'une programme qui l'exige.\n");
-		printf("--fconfig (-f) -> Indique que le prochain argument sera le chemin d'acces au fichier de configuration (sans espace!).\n");
+		printf("--aide (-?)        -> Affiche ce texte et quitte.\n");
+		printf("--delai (-d)       -> Indique que le prochain argument sera le délai (en secondes, de 0 à 6 seulement) a laisser après l'exécution d'une programme qui l'exige.\n");
+		printf("--espacement (-e)  -> Indique que le prochain argument sera le nombre de lignes vides a laisser entre chaque entrée (de 0 à 6 seulement).\n");
+		printf("--fbterm           -> Force l'ouverture du programme en mode fbterm (affiche un fond sombre derrière les entrées du menu) (se fait automatiquement si le programme roule sur fbterm).\n");
+		printf("--fconfig (-f)     -> Indique que le prochain argument sera le chemin d'accès au fichier de configuration (sans espace!).\n");
+		printf("--normal           -> Force l'ouverture du programme en mode normal (se fait automatiquement si le programme ne roule pas sur fbterm).\n");
+		printf("--sans-aide (-s)   -> N'affiche pas la ligne d'aide en bas de l'écran.\n");
+		printf("--sans-souris (-S) -> Désactive la prise en charge de la souris.\n");
+		printf("--version (-v)     -> Affiche la version du programme et quitte.\n");
 
 		exit(0);
 	}
@@ -120,8 +121,11 @@ void gestion_arguments (char arg[])
 
 	else if (!strcmp(arg, "--normal"))
 	{fbterm = FALSE;}
+	
+	else if (!strcmp(arg, "--sans-souris") || !strcmp(arg, "-S"))
+	{souris = FALSE;}
 
-	else if (!strcmp(arg, "--sansaide") || !strcmp(arg, "-s"))
+	else if (!strcmp(arg, "--sans-aide") || !strcmp(arg, "-s"))
 	{afficher_ligne_aide = FALSE;}
 
 	else if (!strcmp(arg, "--fconfig") || !strcmp(arg, "--config") || !strcmp(arg, "-f"))
@@ -212,9 +216,19 @@ bool lecture_fconfig ()
 				{entrees[c].necessite_fork = TRUE;}
 				else if (!strcmp(mot, "quitter"))
 				{entrees[c].maniere_de_quitter = TRUE;}
+				else if (!strcmp(mot, "x11-on"))
+				{
+					if (getenv("DISPLAY") == NULL) //getenv renvoie la valeur de la variable environnementale specifiée en parametre ou NULL si elle n'existe pas
+					{entrees[c].cachee = TRUE; nbre_cachees++;}
+				}
+				else if (!strcmp(mot, "x11-off"))
+				{
+					if (getenv("DISPLAY") != NULL)
+					{entrees[c].cachee = TRUE; nbre_cachees++;}
+				}
 				else if (!strcmp(mot, "twin-on"))
 				{
-					if (getenv("TWDISPLAY") == NULL) //getenv renvoie la valeur de la variable bash specifiee en parametre ou NULL si elle n'existe pas
+					if (getenv("TWDISPLAY") == NULL)
 					{entrees[c].cachee = TRUE; nbre_cachees++;}
 				}
 				else if (!strcmp(mot, "twin-off"))
@@ -304,11 +318,15 @@ int main (int argc, char* argv[])
 //S'occupe de l'initialisation du programme et de la main loop.
 {
 	int input;
+	bool key_simulee = FALSE;
+	MEVENT mev;
 	pthread_t thread2;
+	int nbre_entrees_cachees_avant;
 
 
-	//Mise en mode UTF-8 (si ce n'est pas daja le cas):
-	setlocale(LC_ALL, "en_CA.UTF-8");
+	//Utilisation de la locale UTF-8 de base si on en pas déjà une:
+	if (!setlocale(LC_ALL, ""))
+	{setlocale(LC_ALL, "C.UTF-8");}
 
 	//Vérification de la présence de notre hint fbterm:
 	if (getenv("FBTERM") != NULL)
@@ -318,14 +336,14 @@ int main (int argc, char* argv[])
 	for (unsigned c = 1; c < argc; c++)
 	{gestion_arguments(argv[c]);}
 
-	//Trouve le fichier de configuration de l'utilisateur s'il n'a pas ete specifie:
+	//Trouve le fichier de configuration de l'utilisateur s'il n'a pas été specifié:
 	if (!strcmp(nom_fconfig, ""))
 	{
 		strcpy(nom_fconfig, getenv("HOME"));
 		strcat(nom_fconfig, "/.config/menu/config");
 	}
 
-	//Lecture des entrees depuis le fichier de configuration:
+	//Lecture des entrées depuis le fichier de configuration:
 	if (!lecture_fconfig())
 	{quitter("");}
 
@@ -339,10 +357,7 @@ int main (int argc, char* argv[])
 		{nom_tty[c] = nom_tty[c+1];}
 	}
 
-	//Pipe l'aide a less pour qu'on puisse facilement la consulter:
-	strcat(aide, " | less");
-
-	//S'assure que le curseur n'est pas sur un 1er choix cache:
+	//S'assure que l'entrée sélectionnée n'est pas cachée:
 	while (entrees[choix].cachee)
 	{choix++;}
 
@@ -359,25 +374,34 @@ int main (int argc, char* argv[])
 	curs_set(0);
 	ncurses_active = TRUE;
 	rafraichir();
+	
+	//Initialisation de la prise en charge de la souris (si activée):
+	if (souris)
+	{mousemask(ALL_MOUSE_EVENTS, NULL);}
 
 
 	//Main Loop:
 	while (1)
 	{
-		do
-		{input = getch();} while (input == ERR);
+		if (!key_simulee)
+		{
+			do
+			{input = getch();} while (input == ERR);
+		}
+		else
+		{key_simulee = FALSE;}
 
 		//Ligne de commande:
 		if (cmd_line)
 		{
-			//Ajout d'une lettre a la commande:
+			//Ajout d'une lettre à la commande:
 			if (isprint(input))
 			{
 				commande[strlen(commande) + 1] = '\000';
 				commande[strlen(commande)] = input;
 			}
 
-			//Suppression de la derniere lettre de la commande:
+			//Suppression de la dernière lettre de la commande:
 			else if (input == KEY_BACKSPACE && strlen(commande) > 0)
 			{commande[strlen(commande) - 1] = '\000';}
 
@@ -396,7 +420,7 @@ int main (int argc, char* argv[])
 				strcpy(commande, "");
 			}
 
-			//Commande precedente:
+			//Commande précédente:
 			else if (input == KEY_UP)
 			{strcpy(commande, historique);}
 
@@ -415,11 +439,11 @@ int main (int argc, char* argv[])
 		//Menu regulier:
 		switch (input)
 		{
-		//Rafraichir:
+		//Redessiner:
 		case KEY_RESIZE:
 		case 'R':
 		case 'r':
-			clear(); //pour etre sur de bien nettoyer le terminal...
+			clear(); //pour être sûr de bien nettoyer le terminal...
 			break;
 
 		//Descendre dans le menu:
@@ -438,7 +462,7 @@ int main (int argc, char* argv[])
 			{choix++;}
 			break;
 
-		//Choisir une entree:
+		//Choisir une entrée:
 		case 13: //enter
 		case ' ':
 			if (entrees[choix].maniere_de_quitter)
@@ -451,7 +475,7 @@ int main (int argc, char* argv[])
 				if (entrees[choix].necessite_fork)
 				{
 					if (pthread_create(&thread2, NULL, (void*) &system, &entrees[choix].cmd) != 0)
-					{erreur("Impossible de creer un nouveau thread pour executer cette commande!", "Avez-vous abuse des commandes forkees?", choix); getch();}
+					{erreur("Impossible de creer un nouveau thread pour exécuter cette commande!", "Avez-vous abusé des commandes forkées?", choix); getch();}
 				}
 				else
 				{system(entrees[choix].cmd);}
@@ -482,6 +506,30 @@ int main (int argc, char* argv[])
 		case 'Q':
 		case 'q':
 			quitter("");
+			break;
+		
+		//Souris:
+		case KEY_MOUSE:
+			getmouse(&mev);
+			if (mev.bstate == 4 && mev.x >= (COLS - longueur_sel) / 2  && mev.x < (COLS + longueur_sel) / 2 /*clic gauche dans la zone centrale...*/ \
+				&& mev.y >= pos_debut_liste && mev.y < pos_debut_liste + (nbre_entrees - nbre_cachees) * (espacement + 1) && (mev.y - pos_debut_liste) % (espacement + 1) == 0) //...sur une des entrées
+			{
+				choix = (mev.y - pos_debut_liste) / (espacement + 1);
+				nbre_entrees_cachees_avant = 0;
+				for (int i = 0; i <= choix + nbre_entrees_cachees_avant; i++)
+				{
+					if (entrees[i].cachee)
+					{nbre_entrees_cachees_avant++;}
+				}
+				choix += nbre_entrees_cachees_avant;
+				rafraichir();
+				key_simulee = TRUE;
+				input = 13;
+			}
+			else if (mev.bstate == 65536) //molette vers le haut (ne fonctionne pas sur tty)
+			{key_simulee = TRUE; input = KEY_UP;}
+			else if (mev.bstate == 2097152) //molette vers le bas (ne fonctionne pas sur tty)
+			{key_simulee = TRUE; input = KEY_DOWN;}
 			break;
 		}
 

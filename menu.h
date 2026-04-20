@@ -7,7 +7,7 @@
 #include <locale.h>
 
 
-#define VERSION "1.4"
+#define VERSION "1.5"
 
 #define mvaddstrc(pos_y, txt)	mvaddstr(pos_y, (COLS - strlen(txt)) / 2, txt)
 

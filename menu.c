@@ -23,12 +23,12 @@ char nom_tty[20] = "ERREUR!";
 int pos_debut_liste;
 int choix = 0;
 bool ncurses_active = FALSE;
-int nbre_cachees = 0; //nombre d'entrees cachees (parce que leurs conditions ne sont pas remplies)
+int nbre_cachees = 0; //nombre d'entrées cachées (parce que leurs conditions ne sont pas remplies)
 bool cmd_line = FALSE;
 char commande[100] = "";
 char historique[100] = "";
 
-//Parametres modifiables via les options d'invocation:
+//Paramètres modifiables via les options d'invocation:
 bool fbterm = FALSE;
 bool afficher_ligne_aide = TRUE;
 bool souris = TRUE;
@@ -38,7 +38,7 @@ char nom_fconfig[100] = ""; //valeur par défaut (déterminée au démarrage): $
 
 
 int taille_nbre (int nbre)
-//Trouve le nombre de caracteres occupes par le nombre recu en parametre.
+//Trouve le nombre de caractères occupés par le nombre reçu en paramètre.
 {
 	unsigned compteur = 0;
 	int n = nbre;
@@ -53,7 +53,7 @@ int taille_nbre (int nbre)
 
 
 void quitter (char cmd[])
-//Ferme le programme en liberant les ressources nesessaires et en reinitialisant le terminal.
+//Ferme le programme en libérant les ressources nécessaires et en réinitialisant le terminal.
 {
 	char buffer[300] = "\"";
 
@@ -82,16 +82,16 @@ void erreur (char msg[], char details[], int valeur)
 	{
 		rafraichir();
 		mvprintw(LINES - 5, (COLS - strlen(msg) - strlen("Erreur: ")) / 2, "Erreur: %s", msg);
-		mvprintw(LINES - 4, (COLS - strlen(details) - strlen("Details: ")) / 2, "Details: %s", details);
+		mvprintw(LINES - 4, (COLS - strlen(details) - strlen("Details: ")) / 2, "Détails: %s", details);
 		mvprintw(LINES - 3, (COLS - taille_nbre(valeur) - strlen("Valeur: ")) / 2, "Valeur: %d", valeur);
 	}
 	else
-	{printf("\nErreur: %s\nDetails: %s\nValeur: %d\n", msg, details, valeur);}
+	{printf("\nErreur: %s\nDétails: %s\nValeur: %d\n", msg, details, valeur);}
 }
 
 
 void gestion_arguments (char arg[])
-//Gere les arguments recus par le programme.
+//Gère les arguments reçus par le programme.
 {
 	static bool fconfig_en_attente = FALSE;
 	static bool espacement_en_attente = FALSE;
@@ -121,7 +121,7 @@ void gestion_arguments (char arg[])
 		else if (!strcmp(arg, "6"))
 		{*ptr_int = 6;}
 		else
-		{printf("L'espacement ou le delai fourni en argument n'est pas valide.\n"); sleep(2);}
+		{printf("L'espacement ou le délai fourni en argument n'est pas valide.\n"); sleep(2);}
 	}
 
 	else if (fconfig_en_attente)
@@ -141,7 +141,7 @@ void gestion_arguments (char arg[])
 		printf("Voici la liste des arguments que peut recevoir ce programme:\n");
 		printf("--aide (-?)        -> Affiche ce texte et quitte.\n");
 		printf("--delai (-d)       -> Indique que le prochain argument sera le délai (en secondes, de 0 à 6 seulement) a laisser après l'exécution d'une programme qui l'exige.\n");
-		printf("--espacement (-e)  -> Indique que le prochain argument sera le nombre de lignes vides a laisser entre chaque entrée (de 0 à 6 seulement).\n");
+		printf("--espacement (-e)  -> Indique que le prochain argument sera le nombre de lignes vides à laisser entre chaque entrée (de 0 à 6 seulement).\n");
 		printf("--fbterm           -> Force l'ouverture du programme en mode fbterm (affiche un fond sombre derrière les entrées du menu) (se fait automatiquement si le programme roule sur fbterm).\n");
 		printf("--fconfig (-f)     -> Indique que le prochain argument sera le chemin d'accès au fichier de configuration (sans espace!).\n");
 		printf("--normal           -> Force l'ouverture du programme en mode normal (se fait automatiquement si le programme ne roule pas sur fbterm).\n");
@@ -180,7 +180,7 @@ void gestion_arguments (char arg[])
 
 bool lecture_fconfig ()
 //Lit et applique le fichier de configuration du programme.
-//Renvoie TRUE en cas de reussite et FALSE en cas d'echec.
+//Renvoie TRUE en cas de réussite et FALSE en cas d'échec.
 {
 	FILE* fconfig = fopen(nom_fconfig, "r");
 	char ligne[300];
@@ -189,7 +189,7 @@ bool lecture_fconfig ()
 	if (fconfig == NULL)
 	{erreur("Impossible d'ouvrir le fichier de configuration!", (char*) nom_fconfig, 0); return FALSE;}
 
-	//Trouve le nombre d'entrees inscrites dans le fichier:
+	//Trouve le nombre d'entrées inscrites dans le fichier:
 	nbre_entrees = 0;
 	while (fgets(ligne, sizeof(ligne), fconfig) != NULL)
 	{
@@ -202,14 +202,14 @@ bool lecture_fconfig ()
 	if (!nbre_entrees)
 	{erreur("Le fichier de configuration ne contient aucune entrée valide!", (char*) nom_fconfig, 0); return FALSE;}
 
-	//Initialise l'array des entrees:
+	//Initialise l'array des entrées:
 	entrees = calloc(nbre_entrees, sizeof(struct entree));
 
-	//Lit les entrees du fichier:
+	//Lit les entrées du fichier:
 	fconfig = fopen(nom_fconfig, "r");
 	for (unsigned c = 0; c < nbre_entrees; )
 	{
-		//Initialisation des flags a leurs valeurs par defaut:
+		//Initialisation des flags à leurs valeurs par défaut:
 		entrees[c].demander_apres = FALSE;
 		entrees[c].delai_necessaire = FALSE;
 		entrees[c].necessite_fork = FALSE;
@@ -254,7 +254,7 @@ bool lecture_fconfig ()
 				{entrees[c].maniere_de_quitter = TRUE;}
 				else if (!strcmp(mot, "x11-on"))
 				{
-					if (getenv("DISPLAY") == NULL) //getenv renvoie la valeur de la variable environnementale specifiée en parametre ou NULL si elle n'existe pas
+					if (getenv("DISPLAY") == NULL) //getenv renvoie la valeur de la variable environnementale specifiée en paramètre ou NULL si elle n'existe pas
 					{entrees[c].cachee = TRUE; nbre_cachees++;}
 				}
 				else if (!strcmp(mot, "x11-off"))
@@ -283,12 +283,12 @@ bool lecture_fconfig ()
 					{entrees[c].cachee = TRUE; nbre_cachees++;}
 				}
 				else
-				{erreur("Le fichier de configuration contient une entree avec un flag inconnu! (valeur = numero de l'entree)", (char*) nom_fconfig, c); return FALSE;}
+				{erreur("Le fichier de configuration contient une entrée avec un flag inconnu! (valeur = numéro de l'entrée)", (char*) nom_fconfig, c); return FALSE;}
 
 				mot = strtok(NULL, " \t\n");
 			}
 			if (mot == NULL)
-			{erreur("Le fichier de configuration contient une entree incomplete! (valeur = numero de l'entree)", (char*) nom_fconfig, c); return FALSE;}
+			{erreur("Le fichier de configuration contient une entrée incomplete! (valeur = numéro de l'entrée)", (char*) nom_fconfig, c); return FALSE;}
 
 			c++;
 		}
@@ -300,7 +300,7 @@ bool lecture_fconfig ()
 
 
 void rafraichir ()
-//Affiche le menu a l'ecran.
+//Affiche le menu a l'écran.
 {
 	char buffer[120];
 
@@ -321,13 +321,13 @@ void rafraichir ()
 	addstr(nom_tty);
 	addch(' ');
 
-	//Entrees:
+	//Entrées:
 	if (fbterm)
 	{attrset(COLOR_PAIR(1) | A_BLINK);}
 	for (unsigned c = 0, compte_cachees = 0; c < nbre_entrees; c++)
 	{
 		if (entrees[c].cachee)
-		{compte_cachees++; continue;} //continue skippe le reste de cette iteration
+		{compte_cachees++; continue;} //continue skippe le reste de cette itération
 
 		if (choix == c)
 		{attrset(COLOR_PAIR(10)); mvhline(pos_debut_liste + (espacement + 1) * (c - compte_cachees), (COLS - longueur_sel) / 2, ' ', longueur_sel);}
@@ -339,7 +339,7 @@ void rafraichir ()
 	}
 	standend();
 
-	//Ligne de commande (si necessaire):
+	//Ligne de commande (si nécessaire):
 	if (cmd_line)
 	{
 		sprintf(buffer, "Cmd: [ %s ]", commande);
@@ -477,7 +477,7 @@ int main (int argc, char* argv[])
 			continue;
 		}
 
-		//Menu regulier:
+		//Menu régulier:
 		switch (input)
 		{
 		//Redessiner:
@@ -516,7 +516,7 @@ int main (int argc, char* argv[])
 				if (entrees[choix].necessite_fork)
 				{
 					if (pthread_create(&thread2, NULL, (void*) &system, &entrees[choix].cmd) != 0)
-					{erreur("Impossible de creer un nouveau thread pour exécuter cette commande!", "Avez-vous abusé des commandes forkées?", choix); getch();}
+					{erreur("Impossible de créer un nouveau thread pour exécuter cette commande!", "Avez-vous abusé des commandes forkées?", choix); getch();}
 				}
 				else
 				{system(entrees[choix].cmd);}
